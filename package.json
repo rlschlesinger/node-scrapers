@@ -1,0 +1,14 @@
+{
+  "name": "scrape-ottnih",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Christopher Baker <christopher@interkn.com>",
+  "dependencies": {
+    "babel-preset-es2015-node6": "^0.4.0",
+    "babel-preset-stage-0": "^6.22.0",
+    "cheerio": "^0.22.0",
+    "csv-stringify": "^1.0.4",
+    "request": "^2.79.0",
+    "request-promise-native": "^1.0.3"
+  }
+}
