@@ -8,22 +8,32 @@ import log from './lib/log';
 (async function() {
 	// console.log(await scrapeDetail('/technology/e-226-2011'));
 	console.log(await processList('YXDiJk'));
-})();
+});
 
 (async function() {
-	console.warn('initializing');
-	let ids = getIds('http://api.brewerydb.com/v2/breweries?key=a2bde7623cd105327186d4d797913324&region=California&p=1&json')
-	console.warn('ids returned');
 	let data = [];
+	let raw = null;
+	let page = 1;
+	
+	try {
+		raw = await request(`http://api.brewerydb.com/v2/breweries?key=a2bde7623cd105327186d4d797913324&region=California&p=1&json&withLocations=Y&currentPage=${page}`);
+	}
+	catch (e) {
+		return [];
+	}
+	data = JSON.parse(raw);
+	
+	let pageMax = data.numberOfPages;
+	
 	log.setMax('id', ids.length);
 	for (let id of ids) {
 		let list = await processList(id);
 		data = data.concat(list);
-		log.inc('category');
+		log.inc('id');
 	}
 	
 	stringify(data, { header: true }, (err, output) => err ? console.warn(err) : console.log(output));
-});
+})();
 
 async function processList(id) {
 	let raw = null;
@@ -35,7 +45,7 @@ async function processList(id) {
 	}
 
 	let data = JSON.parse(raw);
-	let breweryInfo = getBrewery(id);
+	let breweryInfo = await getBrewery(id);
 	
 	let results = [];
 	
@@ -57,14 +67,6 @@ async function processList(id) {
 	return results;
 }
 
-async function processItem(link) {
-	let raw = await request(link);
-
-	return {
-		// title: $('h1#page-title').text().trim(),
-	};
-}
-
 async function getIds(url) {
 	let data = await parseUrl(url);
 	let list = [];
@@ -76,7 +78,7 @@ async function getIds(url) {
 	for (page; page < (pageMax + 1); page++) {
 		data = await parseUrl(`http://api.brewerydb.com/v2/breweries?key=a2bde7623cd105327186d4d797913324&region=California&p=${page}&json`);
 		for (let each in data.data) {
-			list.push(data.data[each].id)
+			list.push(data.data[each].id);
 		}
 	}
 
@@ -108,12 +110,12 @@ async function getBrewery(id) {
 	catch (e) {
 		return null;
 	}
-	console.log(id);
-	process.exit();
-	let data = JSON.parse(raw);
-	console.log(data.data.name);
 	
-	let location = getLocation(id);
+	let data = JSON.parse(raw);
+	
+	let location = await getLocation(id);
+	
+	console.log(location.address);
 	
 	return {
 		name: data.data.name,
@@ -137,10 +139,10 @@ async function getLocation(id) {
 	let data = JSON.parse(raw);
 	
 	return {
-		address: data.data.streetAddress,
-		city: data.data.locality,
-		zip: data.data.postalCode,
-		lat: data.data.latitude,
-		long: data.data.longitude,
+		address: data.data[0].streetAddress,
+		city: data.data[0].locality,
+		zip: data.data[0].postalCode,
+		lat: data.data[0].latitude,
+		long: data.data[0].longitude,
 	};
 }
