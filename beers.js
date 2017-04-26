@@ -2,7 +2,6 @@ process.on('unhandledRejection', err => console.warn(err));
 
 /* eslint-disable no-console */
 import request from 'request-promise-native';
-import cheerio from 'cheerio';
 import stringify from 'csv-stringify';
 import log from './lib/log';
 
@@ -60,10 +59,9 @@ async function processList(id) {
 
 async function processItem(link) {
 	let raw = await request(link);
-	let $ = cheerio.load(raw);
 
 	return {
-		title: $('h1#page-title').text().trim(),
+		// title: $('h1#page-title').text().trim(),
 	};
 }
 
